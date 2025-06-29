@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebP转MP4转换器</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; padding: 20px;
+        }
+        .container {
+            max-width: 800px; margin: 0 auto; background: white;
+            border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 30px; text-align: center;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 1.1em; }
+        .content { padding: 40px; }
+        .upload-section { margin-bottom: 30px; }
+        .upload-area {
+            border: 3px dashed #667eea; border-radius: 15px; padding: 40px;
+            text-align: center; background: #f8f9ff; cursor: pointer; transition: all 0.3s ease;
+        }
+        .upload-area:hover { border-color: #764ba2; background: #f0f2ff; }
+        .upload-area.dragover { border-color: #764ba2; background: #e8ebff; }
+        .file-input { display: none; }
+        .upload-icon { font-size: 3em; margin-bottom: 15px; color: #667eea; }
+        .file-info {
+            background: #e8f5e8; border: 1px solid #4caf50; border-radius: 10px;
+            padding: 20px; margin-top: 20px; display: none;
+        }
+        .options-section { margin-bottom: 30px; }
+        .option-group { margin-bottom: 20px; }
+        .option-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .option-group select {
+            width: 100%; padding: 12px; border: 2px solid #e1e5e9;
+            border-radius: 8px; font-size: 16px; background: white;
+        }
+        .option-group select:focus { outline: none; border-color: #667eea; }
+        .convert-btn {
+            width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease; margin-bottom: 20px;
+        }
+        .convert-btn:hover:not(:disabled) {
+            transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .convert-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .progress-section { display: none; margin-bottom: 20px; }
+        .progress-bar {
+            width: 100%; height: 20px; background: #e1e5e9;
+            border-radius: 10px; overflow: hidden; margin-bottom: 10px;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%; transition: width 0.3s ease;
+        }
+        .logs-section {
+            background: #f8f9fa; border-radius: 10px; padding: 20px; max-height: 200px;
+            overflow-y: auto; font-family: 'Courier New', monospace; font-size: 14px;
+            line-height: 1.4; display: none;
+        }
+        .log-entry { margin-bottom: 5px; color: #666; }
+        .download-section {
+            display: none; text-align: center; padding: 20px; background: #e8f5e8;
+            border-radius: 10px; margin-top: 20px;
+        }
+        .download-btn {
+            background: #4caf50; color: white; padding: 12px 30px; border: none;
+            border-radius: 8px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block;
+        }
+        .download-btn:hover { background: #45a049; }
+        .reset-btn {
+            background: #ff6b6b; color: white; padding: 10px 20px; border: none;
+            border-radius: 8px; font-size: 14px; cursor: pointer; margin-left: 10px;
+        }
+        .reset-btn:hover { background: #ff5252; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 WebP转MP4转换器</h1>
+            <p>高质量动画WebP转换工具 - 零依赖版本</p>
+        </div>
+        
+        <div class="content">
+            <div class="upload-section">
+                <h2>1. 选择WebP文件</h2>
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">��</div>
+                    <p><strong>点击选择文件</strong> 或拖拽文件到此处</p>
+                    <p>支持静态和动画WebP文件</p>
+                </div>
+                <input type="file" id="fileInput" class="file-input" accept=".webp" />
+                
+                <div id="fileInfo" class="file-info">
+                    <h3>文件信息</h3>
+                    <div id="fileDetails"></div>
+                </div>
+            </div>
+
+            <div class="options-section">
+                <h2>2. 转换选项</h2>
+                
+                <div class="option-group">
+                    <label for="fps">输出帧率 (FPS):</label>
+                    <select id="fps">
+                        <option value="24">24 FPS</option>
+                        <option value="30" selected>30 FPS (推荐)</option>
+                        <option value="60">60 FPS</option>
+                    </select>
+                </div>
+
+                <div class="option-group">
+                    <label for="quality">视频质量:</label>
+                    <select id="quality">
+                        <option value="low">标准质量</option>
+                        <option value="medium">高质量</option>
+                        <option value="high" selected>最高质量 (推荐)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="convertBtn" class="convert-btn" disabled>选择文件后开始转换</button>
+
+            <div id="progressSection" class="progress-section">
+                <h3>转换进度</h3>
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+                <p id="progressText">准备中...</p>
+            </div>
+
+            <div id="downloadSection" class="download-section">
+                <h3>✅ 转换完成！</h3>
+                <p>您的MP4文件已准备就绪</p>
+                <a id="downloadBtn" class="download-btn" href="#" download>下载MP4文件</a>
+                <button id="resetBtn" class="reset-btn" onclick="resetForm()">转换新文件</button>
+            </div>
+
+            <div id="logsSection" class="logs-section">
+                <h3>转换日志</h3>
+                <div id="logs"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
